@@ -1,20 +1,10 @@
+# ssh keys
 resource "tls_private_key" "ssh_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-# Save private key to host machine's project root
-
-resource "local_file" "private_key_file" {
-  content         = tls_private_key.ssh_key.private_key_pem
-  filename        = "${path.module}/../id_rsa"
-  file_permission = "0600"
-}
-
-
-
-
-
+# docker network
 resource "docker_network" "ansible_net" {
   name = "ansible_net"
 }
@@ -37,6 +27,7 @@ resource "docker_image" "worker" {
   }
 }
 
+# control node container
 resource "docker_container" "control_node" {
   name  = "control-node"
   image = docker_image.control.name
@@ -78,8 +69,10 @@ resource "docker_container" "control_node" {
   }
 }
 
+
+# worker node container
 resource "docker_container" "worker_nodes" {
-  count = 2
+  count = var.woker_count
   name  = "worker-node-${count.index}"
   image = docker_image.worker.name
 
